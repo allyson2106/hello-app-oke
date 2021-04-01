@@ -1,0 +1,58 @@
+resources:
+- repo: self
+  fetchDepth: 1
+queue:
+  name: Hosted Ubuntu 1604
+trigger:
+- master
+
+variables:
+  BuildConfiguration: 'Release'
+  DockerImageName: 'hello-app'
+
+steps:
+- task: GoTool@0
+  displayName: 'Use Go 1.10'
+
+- task: Go@0
+  displayName: 'go get'
+  inputs:
+    arguments: '-d'
+
+- task: Go@0
+  displayName: 'go build'
+  inputs:
+    command: build
+    arguments: '-o "$(System.TeamProject)"'
+
+- task: ArchiveFiles@2
+  displayName: 'Archive files'
+  inputs:
+    rootFolderOrFile: '$(Build.Repository.LocalPath)'
+    includeRootFolder: False
+
+- task: CmdLine@1
+  displayName: 'Lock image version in deployment.yaml'
+  inputs:
+    filename: /bin/bash
+    arguments: '-c "awk ''{gsub(\"HELLOWEB_IMAGE\", \"gru.ocir.io/growrhmahp1e/$(DockerImageName):$(Build.BuildId)\", $0); print}'' deployment.yaml > $(build.artifactstagingdirectory)/deployment.yaml"'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+
+- task: Docker@0
+  displayName: 'Build image'
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryConnection: 'ocir-tutorial'
+    imageName: 'gru.ocir.io/growrhmahp1e/$(DockerImageName):$(Build.BuildId)'
+
+- task: Docker@0
+  displayName: 'Publish image'
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryConnection: 'ocir-tutorial'
+    action: 'Push an image'
+    imageName: 'gru.ocir.io/growrhmahp1e/$(DockerImageName):$(Build.BuildId)'
