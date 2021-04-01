@@ -47,7 +47,7 @@ steps:
   inputs:
     containerregistrytype: 'Container Registry'
     dockerRegistryConnection: 'ocir-tutorial'
-    imageName: 'gru.ocir.io/growrhmahp1e/$(DockerImageName):$(Build.BuildId)'
+    imageName: 'gcr.io/my-project-01-291416/$(DockerImageName):$(Build.BuildId)'
 
 - task: Docker@0
   displayName: 'Publish image'
@@ -55,4 +55,4 @@ steps:
     containerregistrytype: 'Container Registry'
     dockerRegistryConnection: 'ocir-tutorial'
     action: 'Push an image'
-    imageName: 'gru.ocir.io/growrhmahp1e/$(DockerImageName):$(Build.BuildId)'
+    imageName: 'gcr.io/my-project-01-291416/$(DockerImageName):$(Build.BuildId)'
